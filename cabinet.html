@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            color: #1c1e21;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin-top: 0;
+            color: #007aff;
+        }
+        .info p {
+            margin: 12px 0;
+            font-size: 16px;
+        }
+        .badge {
+            display: inline-block;
+            background: #eef9ff;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 14px;
+            color: #007aff;
+            font-weight: 500;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin: 5px 0;
+        }
+        button {
+            background: #007aff;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005bbf;
+        }
+        .subject-list {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👤 Личный кабинет</h1>
+        <div class="info">
+            <p><strong>ID:</strong> <span id="user_id">—</span></p>
+            <p><strong>Имя:</strong> <span id="full_name">—</span></p>
+            <p><strong>Username:</strong> <span id="username">—</span></p>
+            <p><strong>Бонусные дни:</strong> <span id="bonus_days" class="badge">0</span></p>
+            <p><strong>Статус:</strong> <span id="status">⚪ Не оплачено</span></p>
+        </div>
+
+        <h2>📚 Ваши предметы</h2>
+        <div class="subject-list" id="subjects_container">
+            <p id="no_subjects">Нет купленных предметов.</p>
+            <ul id="subjects_list" style="display: none;"></ul>
+        </div>
+
+        <button onclick="window.Telegram.WebApp.close()">Закрыть</button>
+    </div>
+
+    <script>
+        // Функция для получения параметров из URL
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                user_id: params.get('user_id') || '—',
+                full_name: params.get('full_name') || '—',
+                username: params.get('username') || '—',
+                bonus_days: params.get('bonus_days') || '0',
+                status: params.get('status') || 'none',
+                subjects: params.get('subjects') ? params.get('subjects').split(',') : []
+            };
+        }
+
+        // Соответствие статусов тексту и эмодзи
+        const statusMap = {
+            'none': '⚪ Не оплачено',
+            'pending': '🟡 Ожидает оплаты',
+            'paid': '✅ VIP активен',
+            'lifetime': '💎 Пожизненный VIP'
+        };
+
+        // Словарь для отображения названий предметов
+        const subjectNames = {
+            'russian': 'Русский язык',
+            'math': 'Математика',
+            'physics': 'Физика',
+            'chemistry': 'Химия',
+            'biology': 'Биология',
+            'history': 'История',
+            'society': 'Обществознание',
+            'informatics': 'Информатика',
+            'english': 'Английский язык',
+            'full': '🔥 ПОЛНЫЙ VIP'
+        };
+
+        window.onload = function() {
+            const params = getUrlParams();
+
+            // Заполняем поля
+            document.getElementById('user_id').innerText = params.user_id;
+            document.getElementById('full_name').innerText = params.full_name;
+            document.getElementById('username').innerText = params.username ? '@' + params.username : '—';
+            document.getElementById('bonus_days').innerText = params.bonus_days;
+            document.getElementById('status').innerText = statusMap[params.status] || '⚪ Неизвестно';
+
+            // Отображаем предметы
+            const subjects = params.subjects.filter(s => s.trim() !== '');
+            const noSubjects = document.getElementById('no_subjects');
+            const subjectsList = document.getElementById('subjects_list');
+
+            if (subjects.length > 0) {
+                noSubjects.style.display = 'none';
+                subjectsList.style.display = 'block';
+                subjectsList.innerHTML = '';
+                subjects.forEach(subj => {
+                    const li = document.createElement('li');
+                    li.innerText = subjectNames[subj] || subj;
+                    subjectsList.appendChild(li);
+                });
+            } else {
+                noSubjects.style.display = 'block';
+                subjectsList.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
