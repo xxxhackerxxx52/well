@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 16px;
+            color: #1c1e21;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .tabs {
+            display: flex;
+            background: #f0f2f5;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            flex: 1;
+            padding: 16px 8px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #007aff;
+            color: #007aff;
+            background: white;
+        }
+        .tab-content {
+            padding: 24px;
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        .info p {
+            margin: 12px 0;
+            font-size: 16px;
+        }
+        .badge {
+            display: inline-block;
+            background: #eef9ff;
+            border-radius: 16px;
+            padding: 4px 12px;
+            font-size: 14px;
+            color: #007aff;
+            font-weight: 500;
+        }
+        .subject-list {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .product-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .product-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .product-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+        }
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #007aff;
+            margin: 10px 0;
+        }
+        .btn {
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: 600;
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #007aff;
+            color: #007aff;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .cart-total {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: right;
+        }
+        .remove-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        .empty-cart {
+            text-align: center;
+            color: #888;
+            padding: 40px 0;
+        }
+        .close-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="profile">👤 Профиль</div>
+            <div class="tab" data-tab="catalog">📚 Каталог</div>
+            <div class="tab" data-tab="cart">🛒 Корзина (<span id="cart-count">0</span>)</div>
+        </div>
+
+        <!-- Вкладка Профиль -->
+        <div class="tab-content active" id="profile">
+            <h2>👤 Профиль</h2>
+            <div class="info">
+                <p><strong>ID:</strong> <span id="user_id">—</span></p>
+                <p><strong>Имя:</strong> <span id="full_name">—</span></p>
+                <p><strong>Username:</strong> <span id="username">—</span></p>
+                <p><strong>Бонусные дни:</strong> <span id="bonus_days" class="badge">0</span></p>
+                <p><strong>Статус:</strong> <span id="status">⚪ Не оплачено</span></p>
+            </div>
+            <h3>📚 Ваши предметы</h3>
+            <div class="subject-list" id="subjects_container">
+                <p id="no_subjects">Нет купленных предметов.</p>
+                <ul id="subjects_list" style="display: none;"></ul>
+            </div>
+        </div>
+
+        <!-- Вкладка Каталог -->
+        <div class="tab-content" id="catalog">
+            <h2>📚 Каталог предметов</h2>
+            <div class="catalog-grid" id="catalog-grid"></div>
+            <p style="color: #666; font-size: 14px; text-align: center;">Нажмите +, чтобы добавить в корзину.</p>
+        </div>
+
+        <!-- Вкладка Корзина -->
+        <div class="tab-content" id="cart">
+            <h2>🛒 Корзина</h2>
+            <div id="cart-items"></div>
+            <div class="cart-total" id="cart-total">Итого: 0 ₽</div>
+            <button class="btn" id="checkout-btn" disabled>Оплатить</button>
+            <p style="color: #888; font-size: 13px; margin-top: 10px;">После оплаты нажмите кнопку «Я оплатил» в боте.</p>
+        </div>
+
+        <button class="close-btn" onclick="window.Telegram.WebApp.close()">Закрыть</button>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // Данные
+        const subjectNames = {
+            'russian': 'Русский язык',
+            'math': 'Математика',
+            'physics': 'Фйизика',
+            'chemistry': 'Химия',
+            'biology': 'Биология',
+            'history': 'История',
+            'society': 'Обществознание',
+            'informatics': 'Информатика',
+            'english': 'Английский язык',
+            'full': '🔥 ПОЛНЫЙ VIP'
+        };
+        const PRICE_PER_SUBJECT = 300;
+        const PRICE_FULL_VIP = 1000;
+        const statusMap = {
+            'none': '⚪ Не оплачено',
+            'pending': '🟡 Ожидает оплаты',
+            'paid': '✅ VIP активен',
+            'lifetime': '💎 Пожизненный VIP'
+        };
+
+        // Глобальные переменные
+        let params = {};
+        let ownedSubjects = [];
+        let cart = [];
+
+        // Получение параметров из URL
+        function getUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                user_id: urlParams.get('user_id') || '—',
+                full_name: urlParams.get('full_name') || '—',
+                username: urlParams.get('username') || '—',
+                bonus_days: urlParams.get('bonus_days') || '0',
+                status: urlParams.get('status') || 'none',
+                subjects: urlParams.get('subjects') ? urlParams.get('subjects').split(',').filter(s => s.trim() !== '') : []
+            };
+        }
+
+        // Заполнение профиля
+        function renderProfile() {
+            document.getElementById('user_id').innerText = params.user_id;
+            document.getElementById('full_name').innerText = params.full_name;
+            document.getElementById('username').innerText = params.username ? '@' + params.username : '—';
+            document.getElementById('bonus_days').innerText = params.bonus_days;
+            document.getElementById('status').innerText = statusMap[params.status] || '⚪ Неизвестно';
+
+            const subjectsContainer = document.getElementById('subjects_container');
+            const noSubjects = document.getElementById('no_subjects');
+            const subjectsList = document.getElementById('subjects_list');
+            if (ownedSubjects.length > 0) {
+                noSubjects.style.display = 'none';
+                subjectsList.style.display = 'block';
+                subjectsList.innerHTML = '';
+                ownedSubjects.forEach(subj => {
+                    const li = document.createElement('li');
+                    li.innerText = subjectNames[subj] || subj;
+                    subjectsList.appendChild(li);
+                });
+            } else {
+                noSubjects.style.display = 'block';
+                subjectsList.style.display = 'none';
+            }
+        }
+
+        // Рендер каталога
+        function renderCatalog() {
+            const catalog = document.getElementById('catalog-grid');
+            catalog.innerHTML = '';
+
+            // Обычные предметы
+            for (const [key, name] of Object.entries(subjectNames)) {
+                if (key === 'full') continue;
+                const alreadyOwned = ownedSubjects.includes(key);
+                const inCart = cart.includes(key);
+                const disabled = alreadyOwned || inCart;
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <h3>${name}</h3>
+                    <div class="price">${PRICE_PER_SUBJECT} ₽</div>
+                    <button class="btn" onclick="addToCart('${key}')" ${disabled ? 'disabled' : ''}>
+                        ${alreadyOwned ? 'Куплено' : (inCart ? 'В корзине' : 'Добавить')}
+                    </button>
+                `;
+                catalog.appendChild(card);
+            }
+
+            // Полный VIP
+            const fullOwned = ownedSubjects.includes('full');
+            const fullInCart = cart.includes('full');
+            const fullCard = document.createElement('div');
+            fullCard.className = 'product-card';
+            fullCard.innerHTML = `
+                <h3>🔥 ПОЛНЫЙ VIP</h3>
+                <div class="price" style="color:#ff8c00;">${PRICE_FULL_VIP} ₽</div>
+                <button class="btn" onclick="addToCart('full')" ${fullOwned || fullInCart ? 'disabled' : ''}>
+                    ${fullOwned ? 'Куплено' : (fullInCart ? 'В корзине' : 'Добавить')}
+                </button>
+            `;
+            catalog.appendChild(fullCard);
+        }
+
+        // Добавление в корзину
+        function addToCart(item) {
+            if (cart.includes(item) || ownedSubjects.includes(item)) return;
+            // Если добавляют полный VIP, очищаем корзину от обычных предметов (логично, что полный включает всё)
+            if (item === 'full') {
+                cart = ['full'];
+            } else {
+                // Если в корзине уже есть полный VIP, не даём добавлять обычные
+                if (cart.includes('full')) return;
+                cart.push(item);
+            }
+            updateCartUI();
+            renderCatalog(); // обновляем кнопки в каталоге
+        }
+
+        // Удаление из корзины
+        function removeFromCart(item) {
+            cart = cart.filter(i => i !== item);
+            updateCartUI();
+            renderCatalog();
+        }
+
+        // Очистить корзину
+        function clearCart() {
+            cart = [];
+            updateCartUI();
+            renderCatalog();
+        }
+
+        // Обновление корзины и общей суммы
+        function updateCartUI() {
+            const cartDiv = document.getElementById('cart-items');
+            const totalSpan = document.getElementById('cart-total');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const cartCount = document.getElementById('cart-count');
+
+            cartCount.innerText = cart.length;
+
+            if (cart.length === 0) {
+                cartDiv.innerHTML = '<div class="empty-cart">🛒 Корзина пуста</div>';
+                totalSpan.innerText = 'Итого: 0 ₽';
+                checkoutBtn.disabled = true;
+                return;
+            }
+
+            let total = 0;
+            let html = '';
+            cart.forEach(item => {
+                const price = item === 'full' ? PRICE_FULL_VIP : PRICE_PER_SUBJECT;
+                total += price;
+                html += `
+                    <div class="cart-item">
+                        <span>${subjectNames[item] || item}</span>
+                        <span>${price} ₽</span>
+                        <button class="remove-btn" onclick="removeFromCart('${item}')">✕</button>
+                    </div>
+                `;
+            });
+            cartDiv.innerHTML = html;
+            totalSpan.innerText = `Итого: ${total} ₽`;
+            checkoutBtn.disabled = false;
+        }
+
+        // Оформление заказа (отправка в бота)
+        function checkout() {
+            if (cart.length === 0) return;
+            const data = JSON.stringify({ action: 'buy', items: cart });
+            window.Telegram.WebApp.sendData(data);
+            window.Telegram.WebApp.showAlert('Запрос отправлен! Бот пришлёт реквизиты для оплаты.');
+            // Очищаем корзину после отправки (можно оставить)
+            clearCart();
+        }
+
+        // Переключение вкладок
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    const tabName = tab.getAttribute('data-tab');
+                    document.getElementById(tabName).classList.add('active');
+                });
+            });
+        }
+
+        // Инициализация
+        window.onload = function() {
+            params = getUrlParams();
+            ownedSubjects = params.subjects;
+            cart = [];
+
+            renderProfile();
+            renderCatalog();
+            updateCartUI();
+            setupTabs();
+
+            // Обработчик кнопки оплаты
+            document.getElementById('checkout-btn').addEventListener('click', checkout);
+        };
+    </script>
+</body>
+</html>
