@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f5f7fa; padding: 16px; color: #1c1e21; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .tabs { display: flex; background: #f0f2f5; border-bottom: 1px solid #ddd; }
+        .tab { flex: 1; padding: 16px 8px; text-align: center; font-weight: 600; cursor: pointer; transition: 0.2s; border-bottom: 3px solid transparent; }
+        .tab.active { border-bottom-color: #007aff; color: #007aff; background: white; }
+        .tab-content { padding: 24px; display: none; }
+        .tab-content.active { display: block; }
+        h2 { margin-top: 0; margin-bottom: 20px; font-size: 20px; }
+        .card { background: #f8f9fa; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .btn { background: #007aff; color: white; border: none; border-radius: 12px; padding: 12px; font-size: 16px; cursor: pointer; width: 100%; font-weight: 600; margin-top: 8px; }
+        .btn-outline { background: white; border: 2px solid #007aff; color: #007aff; }
+        .price { font-size: 24px; font-weight: bold; color: #007aff; }
+        .payment-options { display: flex; gap: 10px; margin: 15px 0; }
+        .payment-option { flex: 1; text-align: center; padding: 12px; border: 2px solid #ddd; border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .payment-option.selected { border-color: #007aff; background: #eef9ff; }
+        .payment-option.stars { background: #f0e68c; border-color: #b8860b; }
+        .payment-option.rub { background: #d4edda; border-color: #28a745; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="main">🏠 Главная</div>
+            <div class="tab" data-tab="search">🔍 Поиск</div>
+            <div class="tab" data-tab="bonus">🎁 Бонусы</div>
+            <div class="tab" data-tab="profile">👤 Профиль</div>
+        </div>
+
+        <!-- Главная -->
+        <div class="tab-content active" id="main">
+            <h2>🔥 Популярные предложения</h2>
+            <div class="card">
+                <h3>ВПР 2026</h3>
+                <p>Полный доступ ко всем материалам ВПР</p>
+                <div class="price">500 ₽ / 500 ⭐</div>
+                <div class="payment-options" data-product="vpr">
+                    <div class="payment-option stars" data-method="stars">⭐ Звёзды</div>
+                    <div class="payment-option rub" data-method="rub">₽ Рубли</div>
+                </div>
+                <button class="btn buy-btn" data-product="vpr" disabled>Выберите способ</button>
+            </div>
+            <div class="card">
+                <h3>ОГЭ 2026</h3>
+                <p>Все предметы, ответы, сливы</p>
+                <div class="price">1000 ₽ / 1000 ⭐</div>
+                <div class="payment-options" data-product="full">
+                    <div class="payment-option stars" data-method="stars">⭐ Звёзды</div>
+                    <div class="payment-option rub" data-method="rub">₽ Рубли</div>
+                </div>
+                <button class="btn buy-btn" data-product="full" disabled>Выберите способ</button>
+            </div>
+        </div>
+
+        <!-- Поиск -->
+        <div class="tab-content" id="search">
+            <h2>🔍 Поиск работ</h2>
+            <input type="text" class="search-box" placeholder="Поиск по предмету..." id="searchInput">
+            <div id="searchResults"></div>
+        </div>
+
+        <!-- Бонусы -->
+        <div class="tab-content" id="bonus">
+            <h2>🎁 Бонусы</h2>
+            <div class="card">
+                <h3>Ваш баланс</h3>
+                <p id="bonusBalance">0 баллов</p>
+                <button class="btn btn-outline" onclick="spinRoulette()">Крутить рулетку</button>
+            </div>
+            <div class="card">
+                <h3>Реферальная программа</h3>
+                <p id="refLink"></p>
+                <button class="btn" onclick="copyRef()">Копировать ссылку</button>
+            </div>
+        </div>
+
+        <!-- Профиль -->
+        <div class="tab-content" id="profile">
+            <h2>👤 Профиль</h2>
+            <p><strong>ID:</strong> <span id="user_id">—</span></p>
+            <p><strong>Имя:</strong> <span id="full_name">—</span></p>
+            <p><strong>Username:</strong> <span id="username">—</span></p>
+            <p><strong>Бонусные дни:</strong> <span id="bonus_days">0</span></p>
+            <p><strong>Статус:</strong> <span id="status">⚪ Не оплачено</span></p>
+            <h3>📚 Мои покупки</h3>
+            <div id="mySubjects"></div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Данные пользователя из URL (передаются из бота)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userData = {
+            user_id: urlParams.get('user_id') || '—',
+            full_name: urlParams.get('full_name') || '—',
+            username: urlParams.get('username') || '—',
+            bonus_days: urlParams.get('bonus_days') || '0',
+            status: urlParams.get('status') || 'none',
+            subjects: urlParams.get('subjects') ? urlParams.get('subjects').split(',').filter(s => s) : [],
+            bonus_points: urlParams.get('bonus_points') || '0',
+            ref_count: urlParams.get('ref_count') || '0'
+        };
+
+        // Заполнение профиля
+        document.getElementById('user_id').innerText = userData.user_id;
+        document.getElementById('full_name').innerText = userData.full_name;
+        document.getElementById('username').innerText = userData.username ? '@' + userData.username : '—';
+        document.getElementById('bonus_days').innerText = userData.bonus_days;
+        document.getElementById('status').innerText = 
+            userData.status === 'paid' ? '✅ VIP активен' : 
+            userData.status === 'lifetime' ? '💎 Пожизненный' : '⚪ Не оплачено';
+        document.getElementById('bonusBalance').innerText = userData.bonus_points + ' баллов';
+
+        // Мои покупки
+        const subjectsContainer = document.getElementById('mySubjects');
+        if (userData.subjects.length) {
+            subjectsContainer.innerHTML = userData.subjects.map(s => `<span class="badge">${s}</span>`).join(' ');
+        } else {
+            subjectsContainer.innerHTML = 'Нет купленных предметов.';
+        }
+
+        // Реферальная ссылка
+        const botUsername = 'OgeOtvet2026_bot';
+        const refLink = `https://t.me/${botUsername}?start=ref_${userData.user_id}`;
+        document.getElementById('refLink').innerText = refLink;
+
+        window.copyRef = function() {
+            navigator.clipboard.writeText(refLink);
+            tg.showAlert('Ссылка скопирована!');
+        };
+
+        // Обработка выбора способа оплаты
+        document.querySelectorAll('.payment-options').forEach(container => {
+            const product = container.dataset.product;
+            const options = container.querySelectorAll('.payment-option');
+            const buyBtn = container.closest('.card').querySelector('.buy-btn');
+            
+            options.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    // Убираем выделение у всех опций в этой карточке
+                    options.forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    buyBtn.disabled = false;
+                    buyBtn.dataset.method = opt.dataset.method;
+                    buyBtn.innerText = opt.dataset.method === 'stars' ? '💎 Оплатить звёздами' : '💰 Получить реквизиты';
+                });
+            });
+        });
+
+        // Обработка покупки
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const method = btn.dataset.method;
+                const product = btn.dataset.product;
+                if (!method) {
+                    tg.showAlert('Сначала выберите способ оплаты');
+                    return;
+                }
+                const data = JSON.stringify({ 
+                    action: method === 'stars' ? 'buy_stars' : 'buy', 
+                    items: [product] 
+                });
+                tg.sendData(data);
+                tg.showAlert(method === 'stars' ? '💰 Открываю окно оплаты...' : '✅ Запрос отправлен!');
+            });
+        });
+
+        // Рулетка
+        window.spinRoulette = function() {
+            tg.sendData(JSON.stringify({ action: 'spin' }));
+            tg.showAlert('🎰 Крутим...');
+        };
+
+        // Табы
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Обработка ошибок (вывод в консоль)
+        window.onerror = function(msg, url, line) {
+            console.error(`Ошибка: ${msg} на строке ${line}`);
+            tg.showAlert('Произошла ошибка. Проверьте консоль.');
+        };
+    </script>
+</body>
+</html>
