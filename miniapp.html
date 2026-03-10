@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP ОГЭ 2026</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --hint-color: var(--tg-theme-hint-color, #999999);
+            --link-color: var(--tg-theme-link-color, #2481cc);
+            --button-color: var(--tg-theme-button-color, #40a7e3);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--hint-color);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--button-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--button-text-color);
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .user-info h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .user-info p {
+            color: var(--hint-color);
+            font-size: 13px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--secondary-bg-color);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--button-color);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--hint-color);
+        }
+
+        .progress-section {
+            background: var(--secondary-bg-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .progress-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--button-color);
+        }
+
+        .progress-bar {
+            background: var(--bg-color);
+            height: 10px;
+            border-radius: 5px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: var(--button-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--hint-color);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .menu-item {
+            background: var(--secondary-bg-color);
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+            color: var(--text-color);
+            font-size: 15px;
+        }
+
+        .menu-item:active {
+            transform: scale(0.97);
+            opacity: 0.8;
+        }
+
+        .menu-item span {
+            display: block;
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--hint-color);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: 16px;
+            max-width: 90%;
+            width: 340px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 15px;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            background: var(--button-color);
+            color: var(--button-text-color);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .modal-content .close {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--hint-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">Загрузка...</div>
+
+    <div id="mainApp" style="display: none;">
+        <!-- Шапка профиля -->
+        <div class="header">
+            <div class="avatar" id="avatar"></div>
+            <div class="user-info">
+                <h2 id="userName">Загрузка...</h2>
+                <p id="userStatus">⏳ Статус: неизвестно</p>
+            </div>
+        </div>
+
+        <!-- Основная статистика -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="referralCount">0</div>
+                <div class="stat-label">Рефералов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="vipStatus">—</div>
+                <div class="stat-label">VIP</div>
+            </div>
+        </div>
+
+        <!-- Прогресс до пожизненного VIP -->
+        <div class="progress-section">
+            <div class="progress-title">👑 До пожизненного VIP</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-labels">
+                <span id="currentRef">0</span>
+                <span>50</span>
+            </div>
+        </div>
+
+        <!-- Меню действий -->
+        <div class="menu-grid">
+            <div class="menu-item" onclick="showBuyModal()">
+                <span>🔥</span> Купить VIP
+            </div>
+            <div class="menu-item" onclick="sendAction('trial')">
+                <span>🎁</span> Пробный VIP
+            </div>
+            <div class="menu-item" onclick="sendAction('promo')">
+                <span>🎫</span> Промокод
+            </div>
+            <div class="menu-item" onclick="sendAction('referrals')">
+                <span>👥</span> Рефералы
+            </div>
+            <div class="menu-item" onclick="sendAction('challenges')">
+                <span>🏆</span> Челленджи
+            </div>
+            <div class="menu-item" onclick="sendAction('reviews')">
+                <span>⭐</span> Отзывы
+            </div>
+        </div>
+
+        <!-- Сообщения от бота будут появляться здесь -->
+        <div id="botMessages"></div>
+    </div>
+
+    <!-- Модалка выбора способа оплаты -->
+    <div id="buyModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>🔥 Выберите способ оплаты</h3>
+            <button onclick="sendAction('pay_yoomoney')">💳 ЮMoney</button>
+            <button onclick="sendAction('pay_sbp')">📱 СБП (Сбербанк)</button>
+            <button class="close" onclick="closeModal()">◀️ Назад</button>
+        </div>
+    </div>
+
+    <!-- Модалка для ввода промокода -->
+    <div id="promoModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>🎫 Введите промокод</h3>
+            <input type="text" id="promoCode" placeholder="Например: OGE2026FREE" style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--hint-color); background: var(--bg-color); color: var(--text-color);">
+            <button onclick="submitPromo()">Активировать</button>
+            <button class="close" onclick="closeModal()">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+        let tg = window.Telegram?.WebApp;
+        let userData = null;
+        let webAppQueryId = null;
+
+        // Инициализация
+        if (!tg || !tg.initDataUnsafe?.user) {
+            document.getElementById('loading').innerText = '❌ Это приложение должно быть открыто внутри Telegram.';
+        } else {
+            tg.expand();
+            tg.enableClosingConfirmation();
+            tg.BackButton.hide();
+
+            userData = tg.initDataUnsafe.user;
+            document.getElementById('avatar').textContent = userData.first_name?.charAt(0) || '?';
+            document.getElementById('userName').textContent = userData.first_name + ' ' + (userData.last_name || '');
+
+            // Запрашиваем данные пользователя у бота
+            sendAction('get_user_info');
+
+            // Слушаем ответы от бота
+            tg.onEvent('message', handleBotResponse);
+        }
+
+        function handleBotResponse(message) {
+            try {
+                const data = JSON.parse(message);
+                if (data.action === 'user_info') {
+                    updateUI(data);
+                } else if (data.action === 'payment_link') {
+                    // Показываем ссылку на оплату
+                    showMessage(`Ссылка для оплаты: ${data.link}\nКомментарий: ${data.comment}`);
+                } else if (data.action === 'success') {
+                    showMessage(`✅ ${data.text}`);
+                    // Обновляем данные
+                    sendAction('get_user_info');
+                } else if (data.action === 'error') {
+                    showMessage(`❌ ${data.text}`);
+                } else if (data.action === 'promo_prompt') {
+                    // Запрашиваем ввод промокода
+                    showPromoModal();
+                } else if (data.action === 'payment_methods') {
+                    // Показываем выбор способа оплаты
+                    showBuyModal();
+                } else {
+                    showMessage(JSON.stringify(data));
+                }
+            } catch (e) {
+                showMessage('Ответ от бота: ' + message);
+            }
+        }
+
+        function updateUI(data) {
+            // Статус
+            let statusText = '';
+            let statusEmoji = '';
+            if (data.status === 'lifetime') {
+                statusText = 'ПОЖИЗНЕННЫЙ';
+                statusEmoji = '👑';
+            } else if (data.status === 'paid') {
+                statusText = 'АКТИВЕН';
+                statusEmoji = '✅';
+            } else {
+                statusText = 'НЕ АКТИВЕН';
+                statusEmoji = '⏳';
+            }
+            document.getElementById('userStatus').innerHTML = `${statusEmoji} Статус: ${statusText}`;
+
+            // Рефералы
+            document.getElementById('referralCount').textContent = data.referrals;
+            document.getElementById('currentRef').textContent = data.referrals;
+
+            // Прогресс
+            const progress = Math.min((data.referrals / 50) * 100, 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            // VIP статус в карточке
+            document.getElementById('vipStatus').textContent = data.status === 'lifetime' ? '♾️' : (data.status === 'paid' ? '✅' : '❌');
+
+            // Прячем загрузку, показываем приложение
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+        }
+
+        function sendAction(action, extra = {}) {
+            const payload = { action, ...extra };
+            webAppQueryId = tg.initDataUnsafe?.query_id;
+            tg.sendData(JSON.stringify(payload));
+        }
+
+        function showMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.style.background = 'var(--secondary-bg-color)';
+            msgDiv.style.padding = '10px';
+            msgDiv.style.borderRadius = '8px';
+            msgDiv.style.marginBottom = '10px';
+            msgDiv.style.whiteSpace = 'pre-wrap';
+            msgDiv.textContent = text;
+            document.getElementById('botMessages').prepend(msgDiv);
+        }
+
+        function showBuyModal() {
+            document.getElementById('buyModal').style.display = 'flex';
+        }
+
+        function showPromoModal() {
+            document.getElementById('promoModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('buyModal').style.display = 'none';
+            document.getElementById('promoModal').style.display = 'none';
+        }
+
+        function submitPromo() {
+            const code = document.getElementById('promoCode').value.trim().toUpperCase();
+            if (code) {
+                sendAction('activate_promo', { code });
+                closeModal();
+            }
+        }
+
+        // Обработка нажатий на кнопки покупки
+        function sendAction(action) {
+            if (action === 'pay_yoomoney' || action === 'pay_sbp') {
+                sendAction(action);
+                closeModal();
+            } else {
+                sendAction(action);
+            }
+        }
+    </script>
+</body>
+</html>
