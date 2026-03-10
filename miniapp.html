@@ -304,6 +304,7 @@
             document.getElementById('loading').innerText = '❌ Это приложение должно быть открыто внутри Telegram.';
         } else {
             tg.expand();
+            tg.ready();
             tg.enableClosingConfirmation();
             tg.BackButton.hide();
 
