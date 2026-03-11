@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОГЭ 2026 | Кабинет</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #ffffff);
+            --text-color: var(--tg-theme-text-color, #000000);
+            --hint-color: var(--tg-theme-hint-color, #999999);
+            --button-color: var(--tg-theme-button-color, #40a7e3);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 0;
+            margin: 0;
+            font-size: 16px;
+        }
+        .container {
+            padding: 20px 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background-color: var(--button-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--button-text-color);
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--hint-color);
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--button-color);
+        }
+        .stat-label {
+            font-size: 14px;
+            color: var(--hint-color);
+        }
+        .progress-section {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .progress-bar {
+            background-color: var(--bg-color);
+            height: 12px;
+            border-radius: 6px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background-color: var(--button-color);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .badge-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+        .badge {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: var(--secondary-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            border: 2px solid transparent;
+        }
+        .badge.earned {
+            border-color: gold;
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+        }
+        .badge span {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+        .btn {
+            background-color: var(--button-color);
+            color: var(--button-text-color);
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 500;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 12px;
+            transition: opacity 0.2s;
+        }
+        .btn:active {
+            opacity: 0.8;
+        }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--button-color);
+            border: 2px solid var(--button-color);
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+        .modal-content {
+            background-color: var(--bg-color);
+            border-radius: 20px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+        .modal-close {
+            margin-top: 16px;
+            background-color: transparent;
+            border: 1px solid var(--hint-color);
+        }
+        .hidden {
+            display: none;
+        }
+        #loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--hint-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Загрузка...</div>
+
+    <div id="app" class="hidden">
+        <div class="container">
+            <!-- Профиль -->
+            <div class="header">
+                <div class="avatar" id="avatar"></div>
+                <div>
+                    <h2 id="userName"></h2>
+                    <p id="userStatus" style="color: var(--hint-color);">⏳ Статус: неизвестно</p>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="referralCount">0</div>
+                    <div class="stat-label">Рефералов</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="vipIcon">—</div>
+                    <div class="stat-label">VIP</div>
+                </div>
+            </div>
+
+            <!-- Прогресс до пожизненного -->
+            <div class="progress-section">
+                <h3>👑 Прогресс до пожизненного</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span id="currentRef">0</span>
+                    <span>50</span>
+                </div>
+            </div>
+
+            <!-- Награды (бейджи) -->
+            <div class="card">
+                <h3>🎁 Ваши награды</h3>
+                <div class="badge-grid" id="badgeContainer"></div>
+            </div>
+
+            <!-- Действия -->
+            <div class="card">
+                <h3>🔥 Действия</h3>
+                <button class="btn" onclick="activateTrial()">🎁 Пробный VIP (3 дня)</button>
+                <button class="btn" onclick="showPaymentModal()">💳 Купить VIP (1000₽)</button>
+                <button class="btn btn-outline" onclick="showPromoModal()">🎫 Активировать промокод</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка выбора оплаты -->
+    <div id="paymentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">Выберите способ оплаты</div>
+            <button class="btn" onclick="payWithYoomoney()">💳 ЮMoney</button>
+            <button class="btn" onclick="payWithSbp()">📱 СБП (Сбербанк)</button>
+            <button class="btn modal-close" onclick="closeModal('paymentModal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Модалка ввода промокода -->
+    <div id="promoModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">Введите промокод</div>
+            <input type="text" id="promoInput" placeholder="Например: OGE2026FREE" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--hint-color); margin-bottom:12px;">
+            <button class="btn" onclick="submitPromo()">Активировать</button>
+            <button class="btn modal-close" onclick="closeModal('promoModal')">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Модалка проверки оплаты -->
+    <div id="checkPaymentModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title" id="checkTitle">Проверка оплаты</div>
+            <p id="checkMessage">После перевода нажмите кнопку ниже, чтобы проверить.</p>
+            <button class="btn" onclick="checkPayment()">✅ Я оплатил, проверить</button>
+            <button class="btn modal-close" onclick="closeModal('checkPaymentModal')">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = Telegram.WebApp;
+        tg.expand();
+        tg.ready(); // Обязательно!
+
+        const user = tg.initDataUnsafe?.user;
+        if (!user) {
+            document.getElementById('loading').innerText = '❌ Откройте это приложение через бота в Telegram.';
+        } else {
+            // Заполняем базовую информацию
+            document.getElementById('avatar').innerText = user.first_name?.charAt(0) || '?';
+            document.getElementById('userName').innerText = user.first_name + ' ' + (user.last_name || '');
+
+            // Запрашиваем данные у бота
+            sendToBot({ action: 'get_user_info' });
+
+            // Слушаем ответы от бота
+            tg.onEvent('message', handleBotResponse);
+
+            // Показываем приложение, скрываем загрузку
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+            }, 500);
+        }
+
+        function sendToBot(data) {
+            tg.sendData(JSON.stringify(data));
+        }
+
+        function handleBotResponse(message) {
+            try {
+                const data = JSON.parse(message);
+                if (data.action === 'user_info') {
+                    updateUI(data);
+                } else if (data.action === 'trial_activated') {
+                    alert('✅ Пробный VIP активирован!\nСсылка: ' + data.invite_link);
+                    sendToBot({ action: 'get_user_info' });
+                } else if (data.action === 'promo_activated') {
+                    alert('✅ Промокод активирован!\nСсылка: ' + data.invite_link);
+                    sendToBot({ action: 'get_user_info' });
+                } else if (data.action === 'payment_checked') {
+                    if (data.success) {
+                        alert('✅ Оплата подтверждена!\nСсылка: ' + data.invite_link);
+                        sendToBot({ action: 'get_user_info' });
+                        closeModal('checkPaymentModal');
+                    } else {
+                        alert('❌ Платёж не найден. Проверьте комментарий или попробуйте позже.');
+                    }
+                } else if (data.action === 'error') {
+                    alert('❌ ' + data.text);
+                }
+            } catch (e) {
+                console.error('Ошибка парсинга ответа:', e);
+            }
+        }
+
+        function updateUI(data) {
+            // Статус и рефералы
+            document.getElementById('referralCount').innerText = data.referrals || 0;
+            document.getElementById('currentRef').innerText = data.referrals || 0;
+
+            const progress = Math.min((data.referrals || 0) / 50 * 100, 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+
+            let statusText = '';
+            let vipIcon = '';
+            if (data.status === 'lifetime') {
+                statusText = '👑 Пожизненный VIP';
+                vipIcon = '👑';
+            } else if (data.status === 'paid') {
+                statusText = '✅ VIP активен';
+                vipIcon = '✅';
+            } else {
+                statusText = '⏳ VIP не активен';
+                vipIcon = '❌';
+            }
+            document.getElementById('userStatus').innerText = statusText;
+            document.getElementById('vipIcon').innerText = vipIcon;
+
+            // Бейджи
+            const badgeContainer = document.getElementById('badgeContainer');
+            badgeContainer.innerHTML = '';
+            if (data.badges && data.badges.length) {
+                data.badges.forEach(b => {
+                    const div = document.createElement('div');
+                    div.className = 'badge' + (b.earned ? ' earned' : '');
+                    div.innerHTML = `<span>${b.emoji}</span>${b.name}`;
+                    badgeContainer.appendChild(div);
+                });
+            } else {
+                badgeContainer.innerHTML = '<p>Нет бейджей</p>';
+            }
+        }
+
+        function activateTrial() {
+            sendToBot({ action: 'activate_trial' });
+        }
+
+        function showPaymentModal() {
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+
+        function payWithYoomoney() {
+            closeModal('paymentModal');
+            // Открываем ссылку на оплату ЮMoney
+            const url = `https://yoomoney.ru/transfer?quick=1&receiver=4100118533939004&amount=1000&comment=Оплата от ${user.id}`;
+            tg.openLink(url);
+            // Показываем модалку проверки
+            window.currentPaymentMethod = 'yoomoney';
+            document.getElementById('checkTitle').innerText = 'Оплата через ЮMoney';
+            document.getElementById('checkMessage').innerHTML = 'После перевода нажмите кнопку ниже для проверки.';
+            document.getElementById('checkPaymentModal').classList.remove('hidden');
+        }
+
+        function payWithSbp() {
+            closeModal('paymentModal');
+            // Для СБП показываем номер телефона (скопировать вручную)
+            alert('📱 Номер для перевода по СБП:\n+79118194986\nКомментарий: ' + user.id + '\n\nПосле перевода нажмите "Я оплатил"');
+            window.currentPaymentMethod = 'sbp';
+            document.getElementById('checkTitle').innerText = 'Оплата по СБП';
+            document.getElementById('checkMessage').innerHTML = 'После перевода нажмите кнопку ниже для проверки.';
+            document.getElementById('checkPaymentModal').classList.remove('hidden');
+        }
+
+        function checkPayment() {
+            sendToBot({
+                action: 'check_payment',
+                method: window.currentPaymentMethod
+            });
+        }
+
+        function showPromoModal() {
+            document.getElementById('promoModal').classList.remove('hidden');
+        }
+
+        function submitPromo() {
+            const code = document.getElementById('promoInput').value.trim().toUpperCase();
+            if (code) {
+                sendToBot({ action: 'activate_promo', code });
+                closeModal('promoModal');
+            } else {
+                alert('Введите промокод');
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
