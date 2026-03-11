@@ -3,257 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОГЭ 2026 | Личный кабинет</title>
-    <!-- 1. Подключаем SDK Telegram (обязательно) [citation:7][citation:10] -->
+    <title>ОГЭ 2026</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #000000);
-            --hint-color: var(--tg-theme-hint-color, #999999);
-            --link-color: var(--tg-theme-link-color, #2481cc);
-            --button-color: var(--tg-theme-button-color, #40a7e3);
-            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
-            --secondary-bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 16px;
-            max-width: 600px;
-            margin: 0 auto;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .card {
-            background-color: var(--secondary-bg-color);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background-color: var(--button-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--button-text-color);
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .stat-item {
-            background-color: var(--secondary-bg-color);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--button-color);
-        }
-        .button {
-            background-color: var(--button-color);
-            color: var(--button-text-color);
-            border: none;
-            border-radius: 8px;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: 500;
-            width: 100%;
-            cursor: pointer;
-            margin-bottom: 8px;
-        }
-        .hidden {
-            display: none;
-        }
-        #loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--hint-color);
-        }
-        #error-message {
-            color: #ff4d4d;
-            text-align: center;
-            padding: 20px;
-        }
-        .product {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background-color: var(--secondary-bg-color);
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
+        body { font-family: sans-serif; padding: 20px; background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); }
+        .card { background: var(--tg-theme-secondary-bg-color); padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .stat { display: flex; justify-content: space-between; }
+        .badge { font-size: 24px; }
     </style>
 </head>
 <body>
     <div id="loading">Загрузка...</div>
-    <div id="error-message" class="hidden"></div>
-    
-    <div id="app" class="hidden">
-        <div class="header">
-            <div class="avatar" id="avatar"></div>
-            <div>
-                <h2 id="userName">Загрузка...</h2>
-                <p id="userStatus">Статус: неизвестно</p>
-            </div>
-        </div>
-
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="referrals">0</div>
-                <div>Рефералов</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="vipStatus">—</div>
-                <div>VIP</div>
-            </div>
-        </div>
-
+    <div id="app" style="display: none;">
         <div class="card">
-            <h3>🔥 Каталог</h3>
-            <div class="product">
-                <span>VIP на месяц</span>
-                <span class="stat-value">1000₽</span>
-            </div>
-            <div class="product">
-                <span>VIP навсегда</span>
-                <span class="stat-value">5000₽</span>
-            </div>
-            <button class="button" onclick="showPaymentMethods()">Купить VIP</button>
+            <h2 id="userName"></h2>
+            <p id="userStatus"></p>
         </div>
-
         <div class="card">
-            <h3>🎁 Награды</h3>
-            <div id="badges">Загрузка...</div>
+            <div class="stat">Рефералов: <span id="referrals">0</span></div>
+            <div class="stat">Прогресс: <span id="progress">0/50</span></div>
         </div>
-
-        <div class="card">
-            <h3>📊 Прогресс</h3>
-            <p>Приглашено: <span id="refCount">0</span>/50</p>
-            <div style="background-color: var(--bg-color); height: 10px; border-radius: 5px; margin: 8px 0;">
-                <div id="progressBar" style="background-color: var(--button-color); height: 10px; border-radius: 5px; width: 0%;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модалка выбора оплаты -->
-    <div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
-        <div style="background: var(--bg-color); padding: 20px; border-radius: 16px; max-width: 90%; width: 300px;">
-            <h3>Выберите способ</h3>
-            <button class="button" onclick="selectPayment('yoomoney')">💳 ЮMoney</button>
-            <button class="button" onclick="selectPayment('sbp')">📱 СБП</button>
-            <button class="button" style="background: transparent; color: var(--text-color); border: 1px solid var(--hint-color);" onclick="closeModal()">Отмена</button>
-        </div>
+        <div class="card" id="badges"></div>
+        <button onclick="buy()">Купить VIP</button>
     </div>
 
     <script>
-        // 2. Получаем объект Telegram WebApp
-        const tg = window.Telegram?.WebApp;
-        
-        // Проверяем, открыто ли приложение в Telegram
-        if (!tg || !tg.initDataUnsafe?.user) {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('error-message').classList.remove('hidden');
-            document.getElementById('error-message').innerText = '❌ Откройте это приложение через бота в Telegram!';
-        } else {
-            // 3. Обязательно вызываем ready() — это убирает бесконечную загрузку! [citation:7][citation:10]
-            tg.ready();
-            tg.expand(); // Разворачиваем на весь экран
-            
-            // Получаем данные пользователя
-            const user = tg.initDataUnsafe.user;
-            document.getElementById('avatar').innerText = user.first_name?.charAt(0) || '?';
-            document.getElementById('userName').innerText = user.first_name + ' ' + (user.last_name || '');
-            
-            // 4. Запрашиваем данные у бота
-            sendDataToBot({ action: 'get_user_info' });
-            
-            // Скрываем загрузку, показываем приложение
-            setTimeout(() => {
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-            }, 500);
-        }
+        const tg = Telegram.WebApp;
+        tg.expand();
+        tg.ready(); // ← обязательно!
 
-        // Функция отправки данных в бота [citation:5][citation:8]
-        function sendDataToBot(data) {
-            // Отправляем через WebApp.sendData() — данные уйдут в бота [citation:8]
-            tg.sendData(JSON.stringify(data));
-        }
+        const user = tg.initDataUnsafe?.user;
+        document.getElementById('userName').innerText = user?.first_name || 'Пользователь';
 
-        // Обработка ответов от бота
-        tg.onEvent('message', (message) => {
-            try {
-                const data = JSON.parse(message);
-                if (data.action === 'user_info') {
-                    updateUI(data);
-                } else if (data.action === 'payment_details') {
-                    alert(`💰 Реквизиты:\nПолучатель: ${data.receiver}\nСумма: ${data.amount}₽\nКомментарий: ${data.comment}`);
-                } else if (data.action === 'error') {
-                    alert('❌ ' + data.text);
-                }
-            } catch (e) {
-                console.error('Ошибка парсинга ответа:', e);
+        // Отправляем запрос в бота
+        tg.sendData(JSON.stringify({ action: 'get_user_info' }));
+
+        // Слушаем ответ
+        tg.onEvent('message', (msg) => {
+            const data = JSON.parse(msg);
+            if (data.action === 'user_info') {
+                document.getElementById('referrals').innerText = data.referrals || 0;
+                document.getElementById('progress').innerText = data.referrals + '/50';
+                document.getElementById('userStatus').innerText = 'Статус: ' + (data.status || 'none');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
             }
         });
 
-        function updateUI(data) {
-            document.getElementById('referrals').innerText = data.referrals || 0;
-            document.getElementById('refCount').innerText = data.referrals || 0;
-            
-            const progress = Math.min((data.referrals || 0) / 50 * 100, 100);
-            document.getElementById('progressBar').style.width = progress + '%';
-            
-            let status = '';
-            if (data.status === 'lifetime') {
-                status = '👑 Пожизненный';
-                document.getElementById('vipStatus').innerText = '👑';
-            } else if (data.status === 'paid') {
-                status = '✅ Активен';
-                document.getElementById('vipStatus').innerText = '✅';
-            } else {
-                status = '⏳ Не активен';
-                document.getElementById('vipStatus').innerText = '❌';
-            }
-            document.getElementById('userStatus').innerText = 'Статус: ' + status;
-            
-            // Заглушка для бейджей
-            document.getElementById('badges').innerHTML = '🌟 Новичок ⭐ Реферал 💎 VIP';
-        }
-
-        function showPaymentMethods() {
-            document.getElementById('paymentModal').style.display = 'flex';
-        }
-
-        function selectPayment(method) {
-            closeModal();
-            sendDataToBot({ action: 'purchase', method: method });
-        }
-
-        function closeModal() {
-            document.getElementById('paymentModal').style.display = 'none';
+        function buy() {
+            tg.sendData(JSON.stringify({ action: 'purchase', method: 'yoomoney' }));
         }
     </script>
 </body>
