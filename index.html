@@ -7,26 +7,38 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-4">
-    <div class="bg-white rounded-2xl p-6 shadow-xl text-center">
-        <h1 class="text-xl font-bold mb-4">Выберите способ оплаты</h1>
-        <div class="space-y-3">
-            <button onclick="pay('yoomoney')" class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold">ЮMoney / Карта</button>
-            <button onclick="pay('sbp')" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold">СБП (Перевод)</button>
+<body class="bg-slate-50 p-4">
+    <div class="max-w-md mx-auto bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
+        <h1 class="text-xl font-bold text-center mb-6 text-gray-800">💳 Оплата VIP-доступа</h1>
+        
+        <div class="space-y-4">
+            <button onclick="sendPayment('yoomoney')" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold transition-transform active:scale-95">
+                ЮMoney / Карта
+            </button>
+            
+            <button onclick="sendPayment('sbp')" 
+                    class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-2xl font-bold transition-transform active:scale-95">
+                СБП (Перевод)
+            </button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
+        tg.ready();
         tg.expand();
 
-        function pay(method) {
-            // Отправляем данные прямо в чат бота
-            const data = JSON.stringify({
+        function sendPayment(method) {
+            tg.HapticFeedback.impactOccurred('medium'); // Вибрация при нажатии
+            
+            const data = {
                 action: 'payment_method_selected',
                 method: method
-            });
-            tg.sendData(data); // Это закроет Mini App и отправит сообщение боту
+            };
+
+            // Самый надежный способ - отправить данные как текстовое событие
+            tg.sendData(JSON.stringify(data));
         }
     </script>
 </body>
