@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ОГЭ 2026 | Личный кабинет</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Весь твой CSS остается прежним, я убрал для экономии места, просто скопируй его из старого файла */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        :root { --bg-color: var(--tg-theme-bg-color, #f8f9fa); --text-color: var(--tg-theme-text-color, #212529); --hint-color: var(--tg-theme-hint-color, #6c757d); --button-color: var(--tg-theme-button-color, #0d6efd); --secondary-bg: var(--tg-theme-secondary-bg-color, #e9ecef); --card-bg: #ffffff; --border-radius: 24px; --shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        body { background-color: var(--bg-color); color: var(--text-color); margin: 0; font-size: 16px; line-height: 1.5; }
+        .tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background-color: var(--card-bg); border-top-left-radius: var(--border-radius); border-top-right-radius: var(--border-radius); box-shadow: 0 -4px 12px rgba(0,0,0,0.08); padding: 8px 0; justify-content: space-around; z-index: 100; }
+        .tab-item { flex: 1; text-align: center; padding: 8px 4px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--hint-color); border-radius: 16px; }
+        .tab-item.active { color: var(--button-color); background-color: var(--secondary-bg); }
+        .tab-item span { display: block; font-size: 24px; margin-bottom: 4px; }
+        .content { padding: 20px 16px 80px 16px; max-width: 600px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border-radius: var(--border-radius); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .avatar { width: 72px; height: 72px; border-radius: 50%; background-color: var(--button-color); display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; font-weight: 600; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-item { background-color: var(--secondary-bg); border-radius: var(--border-radius); padding: 20px; text-align: center; }
+        .stat-value { font-size: 32px; font-weight: 700; color: var(--button-color); }
+        .stat-label { font-size: 16px; color: var(--hint-color); }
+        .progress-section { background-color: var(--secondary-bg); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px; }
+        .progress-bar { background-color: var(--card-bg); height: 16px; border-radius: 8px; margin: 16px 0; overflow: hidden; }
+        .progress-fill { background-color: var(--button-color); height: 100%; width: 0%; transition: width 0.3s; }
+        .badge-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin: 20px 0; }
+        .badge { width: 80px; height: 80px; border-radius: 50%; background-color: var(--secondary-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; border: 2px solid transparent; }
+        .badge.earned { border-color: gold; background-color: var(--button-color); color: white; }
+        .badge span { font-size: 32px; margin-bottom: 4px; }
+        .btn { background-color: var(--button-color); color: white; border: none; border-radius: 30px; padding: 18px; font-size: 18px; font-weight: 600; width: 100%; cursor: pointer; margin-bottom: 12px; }
+        .btn-outline { background-color: transparent; color: var(--button-color); border: 2px solid var(--button-color); }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 200; padding: 16px; }
+        .modal-content { background-color: var(--card-bg); border-radius: 32px; padding: 24px; max-width: 400px; width: 100%; }
+        .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 16px; color: var(--text-color); }
+        .hidden { display: none; }
+        input { width: 100%; padding: 16px; border-radius: 30px; border: 1px solid var(--hint-color); font-size: 16px; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div id="loading" style="text-align:center; padding: 40px;">Загрузка...</div>
+
+    <div id="app" class="hidden">
+        <div class="tab-bar">
+            <div class="tab-item active" data-tab="home" onclick="switchTab('home')"><span>🏠</span> Главная</div>
+            <div class="tab-item" data-tab="profile" onclick="switchTab('profile')"><span>👤</span> Профиль</div>
+        </div>
+
+        <div class="content">
+            <div id="home" class="tab-content">
+                <div class="header">
+                    <div class="avatar" id="avatar"></div>
+                    <div>
+                        <h2 id="userName"></h2>
+                        <p id="userStatus">⏳ Статус: загрузка...</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-item"><div class="stat-value" id="referralCount">0</div><div class="stat-label">Рефералов</div></div>
+                    <div class="stat-item"><div class="stat-value" id="vipIcon">—</div><div class="stat-label">VIP</div></div>
+                </div>
+
+                <div class="card">
+                    <h3>🔥 Действия</h3>
+                    <button class="btn" onclick="activateTrial()" id="btnTrial">🎁 Пробный VIP (3 дня)</button>
+                    <button class="btn" onclick="payYooMoney()">💳 Оплатить ЮMoney</button>
+                    <button class="btn btn-outline" onclick="showPromoModal()">🎫 Ввести промокод</button>
+                </div>
+            </div>
+
+            <div id="profile" class="tab-content hidden">
+                <h2>🎁 Достижения</h2>
+                <div class="badge-grid" id="badgeContainer"></div>
+                <button class="btn" onclick="loadUserData()">🔄 Обновить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="promoModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-title">Введите промокод</div>
+            <input type="text" id="promoInput" placeholder="Например: FREE2026">
+            <button class="btn" onclick="submitPromo()">Активировать</button>
+            <button class="btn btn-outline" onclick="closeModal('promoModal')">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        
+        // Адрес твоего сервера (измени на реальный IP/домен с портом)
+        const API_BASE_URL = "https://ТВОЙ_IP_ИЛИ_ДОМЕН:8080/api"; 
+        
+        async function apiCall(endpoint, payload = {}) {
+            payload.initData = tg.initData; // Для безопасности
+            try {
+                const res = await fetch(`${API_BASE_URL}/${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                return await res.json();
+            } catch (e) {
+                tg.showAlert("Ошибка соединения с сервером");
+                return { success: false };
+            }
+        }
+
+        async function loadUserData() {
+            const data = await apiCall('user_info');
+            if (data.success) {
+                document.getElementById('referralCount').innerText = data.referrals;
+                
+                let statusText = '⏳ Не активен', vipIcon = '❌';
+                if (data.status === 'lifetime') { statusText = '👑 Пожизненный VIP'; vipIcon = '👑'; } 
+                else if (data.status === 'paid') { statusText = '✅ VIP активен'; vipIcon = '✅'; }
+                
+                document.getElementById('userStatus').innerText = statusText;
+                document.getElementById('vipIcon').innerText = vipIcon;
+
+                // Скрываем пробную кнопку, если VIP уже есть
+                if(data.status !== 'none') document.getElementById('btnTrial').style.display = 'none';
+
+                const bc = document.getElementById('badgeContainer');
+                bc.innerHTML = '';
+                data.badges.forEach(b => {
+                    bc.innerHTML += `<div class="badge ${b.earned ? 'earned' : ''}"><span>${b.emoji}</span>${b.name}</div>`;
+                });
+            }
+        }
+
+        async function activateTrial() {
+            const res = await apiCall('activate_trial');
+            if (res.success) {
+                tg.showAlert("✅ Пробный VIP активирован!");
+                tg.openLink(res.invite_link);
+                loadUserData();
+            } else {
+                tg.showAlert("❌ " + res.error);
+            }
+        }
+
+        async function payYooMoney() {
+            const res = await apiCall('get_payment_link', { method: 'yoomoney' });
+            if (res.success) {
+                // Показываем реквизиты в модальном окне или через alert
+                if (res.details) {
+                    tg.showAlert(`Переведите ${res.details.amount} руб. на кошелёк ${res.details.wallet} с комментарием ${res.details.comment}. После оплаты нажмите "Я оплатил" в боте.`);
+                } else {
+                    tg.openLink(res.link);
+                }
+                // Можно начать проверку, но проще пусть пользователь сам нажмёт кнопку в боте.
+                // В будущем можно добавить периодическую проверку.
+            } else {
+                tg.showAlert("Ошибка создания ссылки");
+            }
+        }
+
+        async function submitPromo() {
+            const code = document.getElementById('promoInput').value;
+            const res = await apiCall('activate_promo', { code });
+            if (res.success) {
+                tg.showAlert("✅ Промокод активирован!");
+                tg.openLink(res.invite_link);
+                closeModal('promoModal');
+                loadUserData();
+            } else {
+                tg.showAlert("❌ " + res.error);
+            }
+        }
+
+        // Инициализация
+        const user = tg.initDataUnsafe?.user;
+        if (!user) {
+            document.getElementById('loading').innerText = 'Откройте через бота в Telegram';
+        } else {
+            document.getElementById('avatar').innerText = user.first_name?.charAt(0) || '?';
+            document.getElementById('userName').innerText = user.first_name + ' ' + (user.last_name || '');
+            loadUserData().then(() => {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tab).classList.remove('hidden');
+            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.tab-item[data-tab="${tab}"]`).classList.add('active');
+        }
+        function showPromoModal() { document.getElementById('promoModal').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>
